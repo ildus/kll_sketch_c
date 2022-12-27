@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
@@ -43,6 +44,16 @@ static int toss()
 	return res;
 }
 
+void kll_compactor_print(int level, KLLSketchCompactor *c)
+{
+    printf("compactor %d: ", level);
+    for (size_t i = 0; i < c->len; i++)
+    {
+        printf("%f ", c->items[i]);
+    }
+    printf("\n");
+}
+
 static int cmp(const void * a, const void * b)
 {
 	double first = *(double *)a;
@@ -63,9 +74,9 @@ void quicksort(KLLSketchCompactor * c)
 
 void simple_sort(KLLSketchCompactor * c)
 {
-	for (size_t i = 1; i < c->len; i++)
+	for (size_t i = 0; i < c->len - 1; i++)
 	{
-		for (size_t j = i; j < c->len; j++)
+		for (size_t j = i + 1; j < c->len; j++)
 			if (c->items[i] > c->items[j])
 			{
 				double tmp = c->items[i];
@@ -75,47 +86,47 @@ void simple_sort(KLLSketchCompactor * c)
 	}
 }
 
-void kll_compactor_extend(KLLSketchCompactor *c, size_t extra)
+void kll_compactor_extend(KLLSketchCompactor * c, size_t extra)
 {
-    c->allocated += (extra == 0 ? 10 : extra);
-    c->items = (double *)realloc(c->items, sizeof(double) * c->allocated);
+	c->allocated += extra;
+	c->items = (double *)realloc(c->items, sizeof(double) * c->allocated);
 }
 
-void kll_compactor_add(KLLSketchCompactor *c, double val)
+void kll_compactor_add(KLLSketchCompactor * c, double val)
 {
 	if (c->allocated <= c->len)
-		kll_compactor_extend(c, 0);
+		kll_compactor_extend(c, 10);
 
-	c->items[c->len - 1] = val;
+	c->items[c->len] = val;
 	c->len += 1;
 }
 
 void kll_compactor_compact(KLLSketchCompactor * c, KLLSketchCompactor * dst)
 {
 	if (c->len > 1)
-    {
-        // sort
-        if (c->len == 2)
-        {
-            if (c->items[0] > c->items[1])
-            {
-                double tmp = c->items[0];
-                c->items[0] = c->items[1];
-                c->items[1] = tmp;
-            }
-        }
-        else if (c->len > 100)
-            quicksort(c);
-        else
-            simple_sort(c);
-    }
+	{
+		// sort
+		if (c->len == 2)
+		{
+			if (c->items[0] > c->items[1])
+			{
+				double tmp = c->items[0];
+				c->items[0] = c->items[1];
+				c->items[1] = tmp;
+			}
+		}
+		else if (c->len > 100)
+			quicksort(c);
+		else
+			simple_sort(c);
+	}
 
 	size_t free = dst->allocated - dst->len;
-	if (free < c->len/2)
-        kll_compactor_extend(dst, c->len / 2 - free);
+	if (free < c->len / 2)
+		kll_compactor_extend(dst, c->len / 2 - free);
 
-    for (size_t i = toss(); i < c->len; i += 2)
-        kll_compactor_add(dst, c->items[i]);
+	for (size_t i = toss(); i < c->len; i += 2)
+		kll_compactor_add(dst, c->items[i]);
 
-    c->len = 0;
+	c->len = 0;
 }

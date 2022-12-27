@@ -14,7 +14,6 @@ inline static size_t kll_sketch_capacity(KLLSketch * s, size_t h)
 static void kll_sketch_grow(KLLSketch * sketch)
 {
 	KLLSketchCompactor * c = (KLLSketchCompactor *)calloc(1, sizeof(KLLSketchCompactor));
-	c->len = 1;
 
 	sketch->H += 1;
 	sketch->compactors = realloc(sketch->compactors, sizeof(KLLSketchCompactor *) * sketch->H);
@@ -46,8 +45,7 @@ static void kll_sketch_compact(KLLSketch * sketch)
 				size_t prev_h = sketch->compactors[h]->len;
 				size_t prev_h1 = sketch->compactors[h + 1]->len;
 
-				kll_compactor_compact(
-					sketch->compactors[h], sketch->compactors[h + 1]);
+				kll_compactor_compact(sketch->compactors[h], sketch->compactors[h + 1]);
 
 				sketch->size += sketch->compactors[h]->len - prev_h;
 				sketch->size += sketch->compactors[h + 1]->len - prev_h1;
@@ -59,8 +57,8 @@ static void kll_sketch_compact(KLLSketch * sketch)
 	}
 }
 
-void kll_compactor_extend(KLLSketchCompactor *c, size_t extra);
-void kll_compactor_add(KLLSketchCompactor *c, double val);
+void kll_compactor_extend(KLLSketchCompactor * c, size_t extra);
+void kll_compactor_add(KLLSketchCompactor * c, double val);
 
 // Add a new value to the sketch
 void kll_sketch_update(KLLSketch * sketch, double val)
@@ -89,4 +87,16 @@ void kll_sketch_free(KLLSketch * sketch)
 
 	free(sketch->compactors);
 	free(sketch);
+}
+
+void kll_sketch_print(KLLSketch * sketch)
+{
+	printf("size: %lu\n", sketch->size);
+	printf("max size: %lu\n", sketch->max_size);
+	printf("compactors:\n");
+	for (size_t i = 0; i < sketch->H; i++)
+	{
+		kll_compactor_print(i, sketch->compactors[i]);
+	}
+	fflush(stdout);
 }
