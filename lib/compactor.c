@@ -67,12 +67,12 @@ static int cmp(const void * a, const void * b)
 		return 1;
 }
 
-void quicksort(KLLSketchCompactor * c)
+static void quicksort(KLLSketchCompactor * c)
 {
 	qsort(c->items, c->len, sizeof(double), cmp);
 }
 
-void simple_sort(KLLSketchCompactor * c)
+static void simple_sort(KLLSketchCompactor * c)
 {
 	for (size_t i = 0; i < c->len - 1; i++)
 	{
